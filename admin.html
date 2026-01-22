@@ -6,37 +6,61 @@
 <title>ADMIN</title>
 
 <style>
-body{font-family:Arial;background:#f5f8fa;padding:15px}
-input,select,button{width:100%;padding:10px;margin-top:8px}
-button{background:#1da1f2;color:#fff;border:none;border-radius:8px}
-hr{margin:20px 0}
+body{
+  font-family:Arial;
+  background:#f5f8fa;
+  padding:15px;
+}
+h2{margin-top:30px}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+}
+button{
+  background:#1da1f2;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+}
+hr{margin:30px 0}
 </style>
 </head>
 
 <body>
 
+<h1>🔐 Panel Administrador</h1>
+
+<!-- 🔔 AVISOS -->
 <h2>📢 Crear AVISO</h2>
+
 <input id="avisoTexto" placeholder="Texto del aviso">
 <select id="avisoTipo">
   <option value="info">Información</option>
   <option value="alerta">Alerta</option>
 </select>
-<button onclick="guardarAviso()">Publicar aviso</button>
+
+<button id="btnAviso">Publicar aviso</button>
 <p id="estadoAviso"></p>
 
 <hr>
 
+<!-- 📝 POSTS -->
 <h2>📝 Crear PUBLICACIÓN</h2>
-<input id="texto" placeholder="Texto">
+
+<input id="texto" placeholder="Texto de la publicación">
 <input id="precio" placeholder="Precio (opcional)">
 <input type="file" id="imagen">
+
 <select id="tipo">
   <option value="ventas">Ventas</option>
   <option value="noticias">Noticias</option>
 </select>
-<button onclick="guardarPost()">Publicar</button>
+
+<button id="btnPost">Publicar</button>
 <p id="estado"></p>
 
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp }
@@ -57,9 +81,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* AVISOS */
-window.guardarAviso = async function(){
-  estadoAviso.innerText = "Publicando...";
+/* 🔔 AVISOS */
+document.getElementById("btnAviso").onclick = async ()=>{
+  estadoAviso.innerText = "Publicando aviso...";
   await addDoc(collection(db,"avisos"),{
     texto: avisoTexto.value,
     tipo: avisoTipo.value,
@@ -69,15 +93,15 @@ window.guardarAviso = async function(){
   avisoTexto.value="";
 };
 
-/* POSTS */
-window.guardarPost = async function(){
+/* 📝 POSTS */
+document.getElementById("btnPost").onclick = async ()=>{
   estado.innerText="Subiendo...";
   let imgURL="";
 
   if(imagen.files[0]){
-    const refImg = ref(storage,"img/"+Date.now());
-    await uploadBytes(refImg,imagen.files[0]);
-    imgURL = await getDownloadURL(refImg);
+    const imgRef = ref(storage,"img/"+Date.now());
+    await uploadBytes(imgRef,imagen.files[0]);
+    imgURL = await getDownloadURL(imgRef);
   }
 
   await addDoc(collection(db,"posts"),{
