@@ -6,85 +6,36 @@
 <title>TRÁMITES DIGITALES</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f5f8fa;
-}
-
-/* PORTADA */
-.cover{
-  height:160px;
-  background:#1da1f2;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-size:22px;
-  font-weight:bold;
-}
-
-/* FEED */
-.feed{
-  padding:12px;
-}
-
-/* POST */
-.post{
-  background:#fff;
-  border-radius:14px;
-  overflow:hidden;
-  margin-bottom:14px;
-  box-shadow:0 4px 10px rgba(0,0,0,.06);
-}
-
-/* IMAGEN */
-.post img{
-  width:100%;
-  height:220px;
-  object-fit:cover;
-}
-
-/* CONTENIDO */
-.content{
-  padding:14px;
-}
-
-.badge{
-  display:inline-block;
-  padding:5px 10px;
-  border-radius:6px;
-  font-size:12px;
-  color:#fff;
-  margin-bottom:6px;
-}
-
+body{margin:0;font-family:Arial;background:#f5f8fa}
+.cover{height:160px;background:#1da1f2;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold}
+.feed{padding:12px}
+.post{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px}
+img{width:100%;border-radius:10px;margin-top:8px}
+.badge{display:inline-block;padding:4px 8px;border-radius:6px;font-size:12px;color:#fff}
 .ventas{background:#2e7d32}
 .noticias{background:#1565c0}
+.precio{font-size:18px;color:#2e7d32;font-weight:bold;margin-top:5px}
+button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#25D366;color:#fff;font-size:16px}
 
-.precio{
-  font-size:20px;
-  color:#2e7d32;
-  font-weight:bold;
-  margin:8px 0;
-}
-
-.btn{
-  width:100%;
+/* AVISOS */
+.aviso{
+  background:#fff3cd;
+  border-left:6px solid #f9a825;
   padding:12px;
-  border:none;
   border-radius:10px;
-  background:#25D366;
-  color:#fff;
-  font-size:16px;
-  cursor:pointer;
+  margin:12px;
+  font-weight:bold;
 }
+.alerta{border-color:#c62828;background:#fdecea}
+.info{border-color:#1565c0;background:#e3f2fd}
 </style>
 </head>
 
 <body>
 
 <div class="cover">📰 TRÁMITES DIGITALES</div>
+
+<div id="avisos"></div>
 <div class="feed" id="posts"></div>
 
 <!-- 🔥 FIREBASE -->
@@ -107,6 +58,24 @@ const db = getFirestore(app);
 
 const WHATSAPP = "525647385519";
 
+/* 🔔 AVISOS */
+async function cargarAvisos(){
+  const cont = document.getElementById("avisos");
+  const q = query(collection(db,"avisos"), orderBy("fecha","desc"));
+  const snap = await getDocs(q);
+
+  cont.innerHTML = "";
+  snap.forEach(d=>{
+    const a = d.data();
+    cont.innerHTML += `
+      <div class="aviso ${a.tipo}">
+        📢 ${a.texto}
+      </div>
+    `;
+  });
+}
+
+/* 📄 POSTS */
 async function cargarPosts(){
   const cont = document.getElementById("posts");
   cont.innerHTML = "Cargando...";
@@ -119,18 +88,14 @@ async function cargarPosts(){
     const p = d.data();
     cont.innerHTML += `
       <div class="post">
-        ${p.imagen ? `<img src="${p.imagen}">` : ""}
-        <div class="content">
-          <span class="badge ${p.tipo}">${p.tipo.toUpperCase()}</span>
-          <p>${p.texto}</p>
-          ${p.precio ? `
-            <div class="precio">$${p.precio}</div>
-            <button class="btn"
-              onclick="comprar('${encodeURIComponent(p.texto)}','${p.precio}')">
-              Comprar por WhatsApp
-            </button>
-          ` : ""}
-        </div>
+        <span class="badge ${p.tipo}">${p.tipo.toUpperCase()}</span>
+        ${p.imagen?`<img src="${p.imagen}">`:""}
+        <p>${p.texto}</p>
+        ${p.precio?`
+          <div class="precio">$${p.precio}</div>
+          <button onclick="comprar('${encodeURIComponent(p.texto)}','${p.precio}')">
+            Comprar por WhatsApp
+          </button>`:""}
       </div>
     `;
   });
@@ -141,6 +106,7 @@ window.comprar = function(texto,precio){
   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`);
 };
 
+cargarAvisos();
 cargarPosts();
 </script>
 
