@@ -3,70 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADMIN</title>
+<title>Panel Administrador</title>
 
 <style>
 body{
-  font-family:Arial;
-  background:#f5f8fa;
+  font-family:Arial, sans-serif;
+  background:#f2f5f8;
   padding:15px;
 }
-h2{margin-top:30px}
-input,select,button{
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+input, textarea, select, button{
   width:100%;
   padding:10px;
   margin-top:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 button{
   background:#1da1f2;
   color:#fff;
   border:none;
-  border-radius:8px;
+  font-size:16px;
 }
-hr{margin:30px 0}
+.ok{color:green;margin-top:8px}
+#panel{display:none}
 </style>
 </head>
 
 <body>
 
-<h1>🔐 Panel Administrador</h1>
+<h2>🔐 Panel Administrador</h2>
 
-<!-- 🔔 AVISOS -->
-<h2>📢 Crear AVISO</h2>
+<!-- LOGIN -->
+<div class="card" id="login">
+  <input type="password" id="password" placeholder="Contraseña">
+  <button onclick="login()">Entrar</button>
+</div>
 
-<input id="avisoTexto" placeholder="Texto del aviso">
-<select id="avisoTipo">
-  <option value="info">Información</option>
-  <option value="alerta">Alerta</option>
-</select>
+<!-- PANEL -->
+<div id="panel">
 
-<button id="btnAviso">Publicar aviso</button>
-<p id="estadoAviso"></p>
+  <!-- AVISOS -->
+  <div class="card">
+    <h3>📢 Crear AVISO</h3>
+    <textarea id="avisoTexto" placeholder="Texto del aviso"></textarea>
+    <select id="avisoTipo">
+      <option value="info">Información</option>
+      <option value="alerta">Alerta</option>
+    </select>
+    <button onclick="publicarAviso()">Publicar aviso</button>
+    <div class="ok" id="avisoOk"></div>
+  </div>
 
-<hr>
+  <!-- PUBLICACIONES -->
+  <div class="card">
+    <h3>📝 Crear PUBLICACIÓN</h3>
+    <textarea id="texto" placeholder="Texto de la publicación"></textarea>
+    <input id="precio" placeholder="Precio (opcional)">
+    <input type="file" id="imagen">
+    <select id="tipo">
+      <option value="ventas">Ventas</option>
+      <option value="noticias">Noticias</option>
+    </select>
+    <button onclick="publicar()">Publicar</button>
+  </div>
 
-<!-- 📝 POSTS -->
-<h2>📝 Crear PUBLICACIÓN</h2>
-
-<input id="texto" placeholder="Texto de la publicación">
-<input id="precio" placeholder="Precio (opcional)">
-<input type="file" id="imagen">
-
-<select id="tipo">
-  <option value="ventas">Ventas</option>
-  <option value="noticias">Noticias</option>
-</select>
-
-<button id="btnPost">Publicar</button>
-<p id="estado"></p>
+</div>
 
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL }
-from "https://www.gstatic.com/firebasejs/12.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
@@ -79,42 +92,53 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-/* 🔔 AVISOS */
-document.getElementById("btnAviso").onclick = async ()=>{
-  estadoAviso.innerText = "Publicando aviso...";
+// 🔑 CONTRASEÑA
+const CLAVE = "admin123";
+
+window.login = function(){
+  if(password.value === CLAVE){
+    login.style.display="none";
+    panel.style.display="block";
+  }else{
+    alert("Contraseña incorrecta");
+  }
+};
+
+// AVISO
+window.publicarAviso = async function(){
   await addDoc(collection(db,"avisos"),{
     texto: avisoTexto.value,
     tipo: avisoTipo.value,
     fecha: serverTimestamp()
   });
-  estadoAviso.innerText = "✅ Aviso publicado";
+  avisoOk.innerText = "✅ Aviso publicado";
   avisoTexto.value="";
 };
 
-/* 📝 POSTS */
-document.getElementById("btnPost").onclick = async ()=>{
-  estado.innerText="Subiendo...";
-  let imgURL="";
-
+// PUBLICACIÓN
+window.publicar = async function(){
+  let img="";
   if(imagen.files[0]){
-    const imgRef = ref(storage,"img/"+Date.now());
-    await uploadBytes(imgRef,imagen.files[0]);
-    imgURL = await getDownloadURL(imgRef);
+    img = await new Promise(r=>{
+      const fr=new FileReader();
+      fr.onload=()=>r(fr.result);
+      fr.readAsDataURL(imagen.files[0]);
+    });
   }
 
   await addDoc(collection(db,"posts"),{
     texto:texto.value,
     precio:precio.value,
     tipo:tipo.value,
-    imagen:imgURL,
+    imagen:img,
     fecha:serverTimestamp()
   });
 
-  estado.innerText="✅ Publicado";
   texto.value="";
   precio.value="";
+  imagen.value="";
+  alert("Publicación creada");
 };
 </script>
 
