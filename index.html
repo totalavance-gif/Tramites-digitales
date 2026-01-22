@@ -6,16 +6,79 @@
 <title>TRÁMITES DIGITALES</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f5f8fa}
-.cover{height:160px;background:#1da1f2;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold}
-.feed{padding:12px}
-.post{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px}
-img{width:100%;border-radius:10px;margin-top:8px}
-.badge{display:inline-block;padding:4px 8px;border-radius:6px;font-size:12px;color:#fff}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f8fa;
+}
+
+/* PORTADA */
+.cover{
+  height:160px;
+  background:#1da1f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:22px;
+  font-weight:bold;
+}
+
+/* FEED */
+.feed{
+  padding:12px;
+}
+
+/* POST */
+.post{
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.06);
+}
+
+/* IMAGEN */
+.post img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+/* CONTENIDO */
+.content{
+  padding:14px;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:12px;
+  color:#fff;
+  margin-bottom:6px;
+}
+
 .ventas{background:#2e7d32}
 .noticias{background:#1565c0}
-.precio{font-size:18px;color:#2e7d32;font-weight:bold}
-button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#25D366;color:#fff;font-size:16px}
+
+.precio{
+  font-size:20px;
+  color:#2e7d32;
+  font-weight:bold;
+  margin:8px 0;
+}
+
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#25D366;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -24,9 +87,11 @@ button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;back
 <div class="cover">📰 TRÁMITES DIGITALES</div>
 <div class="feed" id="posts"></div>
 
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, orderBy, query }
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
@@ -44,24 +109,37 @@ const WHATSAPP = "525647385519";
 
 async function cargarPosts(){
   const cont = document.getElementById("posts");
-  cont.innerHTML = "";
+  cont.innerHTML = "Cargando...";
 
   const q = query(collection(db,"posts"), orderBy("fecha","desc"));
-  const querySnapshot = await getDocs(q);
+  const snap = await getDocs(q);
 
-  querySnapshot.forEach(doc=>{
-    const p = doc.data();
+  cont.innerHTML = "";
+  snap.forEach(d=>{
+    const p = d.data();
     cont.innerHTML += `
       <div class="post">
-        <span class="badge ${p.tipo}">${p.tipo.toUpperCase()}</span>
         ${p.imagen ? `<img src="${p.imagen}">` : ""}
-        <p>${p.texto}</p>
-        ${p.precio ? `<div class="precio">$${p.precio}</div>
-        <button onclick="window.open('https://wa.me/${WHATSAPP}?text=${encodeURIComponent(p.texto)}')">Comprar por WhatsApp</button>` : ""}
+        <div class="content">
+          <span class="badge ${p.tipo}">${p.tipo.toUpperCase()}</span>
+          <p>${p.texto}</p>
+          ${p.precio ? `
+            <div class="precio">$${p.precio}</div>
+            <button class="btn"
+              onclick="comprar('${encodeURIComponent(p.texto)}','${p.precio}')">
+              Comprar por WhatsApp
+            </button>
+          ` : ""}
+        </div>
       </div>
     `;
   });
 }
+
+window.comprar = function(texto,precio){
+  const msg = `Hola, me interesa:\n${decodeURIComponent(texto)}\nPrecio: $${precio}`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`);
+};
 
 cargarPosts();
 </script>
