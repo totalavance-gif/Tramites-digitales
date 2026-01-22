@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAMITES DIGITALES</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f5f8fa}
+.cover{height:160px;background:#1da1f2;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold}
+.feed{padding:12px}
+.post{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px}
+img{width:100%;border-radius:10px;margin-top:8px}
+.badge{display:inline-block;padding:4px 8px;border-radius:6px;font-size:12px;color:#fff}
+.ventas{background:#2e7d32}
+.noticias{background:#1565c0}
+.precio{font-size:18px;color:#2e7d32;font-weight:bold;margin-top:5px}
+button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#25D366;color:#fff;font-size:16px}
+</style>
+</head>
+
+<body>
+
+<div class="cover">📰 TRÁMITES DIGITALES</div>
+<div class="feed" id="posts"></div>
+
+<!-- 🔥 FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, orderBy, query }
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
+  authDomain: "tramites-a993f.firebaseapp.com",
+  projectId: "tramites-a993f",
+  storageBucket: "tramites-a993f.firebasestorage.app",
+  messagingSenderId: "363617051453",
+  appId: "1:363617051453:web:a5c46549c4057b06f51b54"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const WHATSAPP = "525647385519";
+
+async function cargarPosts(){
+  const cont = document.getElementById("posts");
+  cont.innerHTML = "Cargando...";
+
+  const q = query(collection(db,"posts"), orderBy("fecha","desc"));
+  const snap = await getDocs(q);
+
+  cont.innerHTML = "";
+  snap.forEach(d=>{
+    const p = d.data();
+    cont.innerHTML += `
+      <div class="post">
+        <span class="badge ${p.tipo}">${p.tipo.toUpperCase()}</span>
+        ${p.imagen?`<img src="${p.imagen}">`:""}
+        <p>${p.texto}</p>
+        ${p.precio?`
+          <div class="precio">$${p.precio}</div>
+          <button onclick="comprar('${encodeURIComponent(p.texto)}','${p.precio}')">
+            Comprar por WhatsApp
+          </button>`:""}
+      </div>
+    `;
+  });
+}
+
+window.comprar = function(texto,precio){
+  const msg = `Hola, me interesa:\n${decodeURIComponent(texto)}\nPrecio: $${precio}`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`);
+};
+
+cargarPosts();
+</script>
+
+</body>
+</html>
