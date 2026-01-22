@@ -126,10 +126,10 @@ window.borrar = async id=>{
 };
 
 togglePrecio();
-</script>
+</// ===== LOGIN SIMPLE =====
 const CLAVE = "admin123";
 
-function login(){
+window.login = function(){
   const pass = document.getElementById("password").value;
   const loginBox = document.getElementById("login");
   const panelBox = document.getElementById("panel");
@@ -137,11 +137,10 @@ function login(){
   if(pass === CLAVE){
     loginBox.style.display = "none";
     panelBox.style.display = "block";
-  }else{
+  } else {
     alert("Contraseña incorrecta");
   }
-}
-</script>
+};>
 
 </body>
 </html>
