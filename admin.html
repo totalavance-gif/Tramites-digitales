@@ -3,41 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADMIN - Trámites</title>
+<title>ADMIN</title>
 
 <style>
 body{font-family:Arial;background:#f5f8fa;padding:15px}
-input,textarea,select,button{
-  width:100%;padding:10px;margin-top:10px;
-  border-radius:8px;border:1px solid #ccc
-}
-button{background:#1da1f2;color:#fff;font-size:16px;border:none}
+input,select,button{width:100%;padding:10px;margin-top:8px}
+button{background:#1da1f2;color:#fff;border:none;border-radius:8px}
+hr{margin:20px 0}
 </style>
 </head>
 
 <body>
 
-<h2>🛠 Crear aviso</h2>
-
-<select id="tipo">
-  <option value="ventas">Venta</option>
-  <option value="noticias">Aviso</option>
+<h2>📢 Crear AVISO</h2>
+<input id="avisoTexto" placeholder="Texto del aviso">
+<select id="avisoTipo">
+  <option value="info">Información</option>
+  <option value="alerta">Alerta</option>
 </select>
+<button onclick="guardarAviso()">Publicar aviso</button>
+<p id="estadoAviso"></p>
 
-<input id="texto" placeholder="Texto del aviso">
+<hr>
 
-<input id="imagen" placeholder="URL de imagen (opcional)">
-
+<h2>📝 Crear PUBLICACIÓN</h2>
+<input id="texto" placeholder="Texto">
 <input id="precio" placeholder="Precio (opcional)">
-
-<button onclick="guardar()">Publicar</button>
-
+<input type="file" id="imagen">
+<select id="tipo">
+  <option value="ventas">Ventas</option>
+  <option value="noticias">Noticias</option>
+</select>
+<button onclick="guardarPost()">Publicar</button>
 <p id="estado"></p>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
@@ -50,21 +55,42 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-window.guardar = async function(){
-  const estado = document.getElementById("estado");
-  estado.innerText = "Publicando...";
-
-  await addDoc(collection(db,"posts"),{
-    tipo: tipo.value,
-    texto: texto.value,
-    imagen: imagen.value,
-    precio: precio.value,
+/* AVISOS */
+window.guardarAviso = async function(){
+  estadoAviso.innerText = "Publicando...";
+  await addDoc(collection(db,"avisos"),{
+    texto: avisoTexto.value,
+    tipo: avisoTipo.value,
     fecha: serverTimestamp()
   });
+  estadoAviso.innerText = "✅ Aviso publicado";
+  avisoTexto.value="";
+};
 
-  estado.innerText = "✅ Publicado correctamente";
-  texto.value = imagen.value = precio.value = "";
+/* POSTS */
+window.guardarPost = async function(){
+  estado.innerText="Subiendo...";
+  let imgURL="";
+
+  if(imagen.files[0]){
+    const refImg = ref(storage,"img/"+Date.now());
+    await uploadBytes(refImg,imagen.files[0]);
+    imgURL = await getDownloadURL(refImg);
+  }
+
+  await addDoc(collection(db,"posts"),{
+    texto:texto.value,
+    precio:precio.value,
+    tipo:tipo.value,
+    imagen:imgURL,
+    fecha:serverTimestamp()
+  });
+
+  estado.innerText="✅ Publicado";
+  texto.value="";
+  precio.value="";
 };
 </script>
 
