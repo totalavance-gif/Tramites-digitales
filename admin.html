@@ -127,6 +127,21 @@ window.borrar = async id=>{
 
 togglePrecio();
 </script>
+const CLAVE = "admin123";
+
+function login(){
+  const pass = document.getElementById("password").value;
+  const loginBox = document.getElementById("login");
+  const panelBox = document.getElementById("panel");
+
+  if(pass === CLAVE){
+    loginBox.style.display = "none";
+    panelBox.style.display = "block";
+  }else{
+    alert("Contraseña incorrecta");
+  }
+}
+</script>
 
 </body>
 </html>
