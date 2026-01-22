@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Administrador</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador</title>
 
-<style>
-body{font-family:Arial;background:#f2f2f2;padding:15px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
-input,textarea,select{width:100%;padding:10px;margin-bottom:10px}
-button{width:100%;padding:10px;border:none;border-radius:6px;background:#1da1f2;color:#fff}
-button.delete{background:#e53935;margin-top:5px}
-.post{border-bottom:1px solid #eee;padding-bottom:10px;margin-bottom:10px}
-img{max-width:100%;border-radius:8px;margin-top:5px}
-.badge{padding:4px 8px;border-radius:6px;color:#fff;font-size:12px}
-.ventas{background:#2e7d32}
-.noticias{background:#1565c0}
-#panel{display:none}
-</style>
+  <style>
+    body{font-family:Arial;background:#f2f2f2;padding:15px}
+    .card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+    input,textarea,select{width:100%;padding:10px;margin-bottom:10px}
+    button{width:100%;padding:10px;border:none;border-radius:6px;background:#1da1f2;color:#fff}
+    button.delete{background:#e53935;margin-top:10px}
+    img{max-width:100%;border-radius:8px;margin-top:10px}
+    .badge{padding:4px 8px;border-radius:6px;color:#fff;font-size:12px}
+    .ventas{background:#2e7d32}
+    .noticias{background:#1565c0}
+    #panel{display:none}
+  </style>
 </head>
 
 <body>
@@ -31,116 +30,110 @@ img{max-width:100%;border-radius:8px;margin-top:5px}
 
 <div id="panel">
 
-<div class="card">
-<select id="tipo" onchange="togglePrecio()">
-<option value="ventas">Venta</option>
-<option value="noticias">Noticia</option>
-</select>
+  <div class="card">
+    <select id="tipo" onchange="togglePrecio()">
+      <option value="ventas">Venta</option>
+      <option value="noticias">Noticia</option>
+    </select>
 
-<input id="precio" placeholder="Precio">
-<input type="file" id="imagenInput">
-<textarea id="contenido" placeholder="Contenido"></textarea>
+    <input id="precio" placeholder="Precio">
+    <input type="file" id="imagenInput">
+    <textarea id="contenido" placeholder="Contenido"></textarea>
 
-<button onclick="guardarPost()">Guardar</button>
+    <button onclick="guardarPost()">Guardar</button>
+  </div>
+
+  <div class="card">
+    <h3>Publicaciones</h3>
+    <div id="listaPosts"></div>
+  </div>
+
 </div>
 
-<div class="card">
-<h3>Publicaciones</h3>
-<div id="listaPosts"></div>
-</div>
-
-</div>
-
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query }
-from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
+  from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
-  authDomain: "tramites-a993f.firebaseapp.com",
-  projectId: "tramites-a993f",
-  storageBucket: "tramites-a993f.firebasestorage.app",
-  messagingSenderId: "363617051453",
-  appId: "1:363617051453:web:a5c46549c4057b06f51b54"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCpZG5R1W_rV9Jr1v4nCmJ7VDScL8dYw",
+    authDomain: "tramites-a993f.firebaseapp.com",
+    projectId: "tramites-a993f",
+    storageBucket: "tramites-a993f.appspot.com",
+    messagingSenderId: "363617051453",
+    appId: "1:363617051453:web:a5c46549c40570b6751b54"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const CLAVE = "admin123";
+  // 🔑 CONTRASEÑA
+  const CLAVE = "admin123";
 
-window.login = function(){
-  if(password.value === CLAVE){
-    login.style.display="none";
-    panel.style.display="block";
+  window.login = function(){
+    const pass = document.getElementById("password").value;
+    if(pass === CLAVE){
+      document.getElementById("login").style.display="none";
+      document.getElementById("panel").style.display="block";
+      cargar();
+    }else{
+      alert("Contraseña incorrecta");
+    }
+  };
+
+  window.togglePrecio = function(){
+    precio.style.display = tipo.value === "ventas" ? "block" : "none";
+  };
+
+  window.guardarPost = async function(){
+    let img = "";
+    if(imagenInput.files[0]){
+      img = await new Promise(r=>{
+        const rd = new FileReader();
+        rd.onload=()=>r(rd.result);
+        rd.readAsDataURL(imagenInput.files[0]);
+      });
+    }
+
+    await addDoc(collection(db,"posts"),{
+      tipo: tipo.value,
+      texto: contenido.value,
+      precio: tipo.value==="ventas"?precio.value:"",
+      imagen: img,
+      fecha: Date.now()
+    });
+
+    contenido.value="";
+    precio.value="";
+    imagenInput.value="";
     cargar();
-  } else alert("Contraseña incorrecta");
-};
+  };
 
-window.togglePrecio = ()=> precio.style.display = tipo.value==="ventas"?"block":"none";
-
-window.guardarPost = async ()=>{
-  let img="";
-  if(imagenInput.files[0]){
-    img = await new Promise(r=>{
-      const rd=new FileReader();
-      rd.onload=()=>r(rd.result);
-      rd.readAsDataURL(imagenInput.files[0]);
+  async function cargar(){
+    listaPosts.innerHTML="";
+    const q = await getDocs(collection(db,"posts"));
+    q.forEach(d=>{
+      const p=d.data();
+      listaPosts.innerHTML+=`
+        <div class="post">
+          <span class="badge ${p.tipo}">${p.tipo}</span>
+          <p>${p.texto}</p>
+          ${p.precio?`<b>$${p.precio}</b>`:""}
+          ${p.imagen?`<img src="${p.imagen}">`:""}
+          <button class="delete" onclick="borrar('${d.id}')">Eliminar</button>
+        </div>
+      `;
     });
   }
 
-  await addDoc(collection(db,"posts"),{
-    tipo:tipo.value,
-    texto:contenido.value,
-    precio:tipo.value==="ventas"?precio.value:"",
-    imagen:img,
-    fecha:Date.now()
-  });
+  window.borrar = async function(id){
+    await deleteDoc(doc(db,"posts",id));
+    cargar();
+  };
 
-  contenido.value="";precio.value="";imagenInput.value="";
-  cargar();
-};
-
-async function cargar(){
-  listaPosts.innerHTML="";
-  const q=query(collection(db,"posts"),orderBy("fecha","desc"));
-  const snap=await getDocs(q);
-  snap.forEach(d=>{
-    const p=d.data();
-    listaPosts.innerHTML+=`
-      <div class="post">
-        <span class="badge ${p.tipo}">${p.tipo}</span>
-        <p>${p.texto}</p>
-        ${p.precio?`$${p.precio}`:""}
-        ${p.imagen?`<img src="${p.imagen}">`:""}
-        <button class="delete" onclick="borrar('${d.id}')">Eliminar</button>
-      </div>`;
-  });
-}
-
-window.borrar = async id=>{
-  await deleteDoc(doc(db,"posts",id));
-  cargar();
-};
-
-togglePrecio();
-</// ===== LOGIN SIMPLE =====
-const CLAVE = "admin123";
-
-window.login = function(){
-  const pass = document.getElementById("password").value;
-  const loginBox = document.getElementById("login");
-  const panelBox = document.getElementById("panel");
-
-  if(pass === CLAVE){
-    loginBox.style.display = "none";
-    panelBox.style.display = "block";
-  } else {
-    alert("Contraseña incorrecta");
-  }
-};>
+  togglePrecio();
+</script>
 
 </body>
 </html>
