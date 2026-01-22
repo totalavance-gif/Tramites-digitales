@@ -3,86 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin</title>
+<title>ADMIN - Trámites</title>
 
 <style>
-body{font-family:Arial;background:#f2f2f2;padding:15px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
-input,textarea,select,button{width:100%;padding:10px;margin-top:8px}
-button{background:#1da1f2;color:#fff;border:none;border-radius:6px}
+body{font-family:Arial;background:#f5f8fa;padding:15px}
+input,textarea,select,button{
+  width:100%;padding:10px;margin-top:10px;
+  border-radius:8px;border:1px solid #ccc
+}
+button{background:#1da1f2;color:#fff;font-size:16px;border:none}
 </style>
 </head>
 
 <body>
 
-<div class="card" id="login">
-  <input type="password" id="pass" placeholder="Contraseña">
-  <button onclick="login()">Entrar</button>
-</div>
+<h2>🛠 Crear aviso</h2>
 
-<div id="panel" style="display:none">
+<select id="tipo">
+  <option value="ventas">Venta</option>
+  <option value="noticias">Aviso</option>
+</select>
 
-<div class="card">
-  <select id="tipo">
-    <option value="ventas">Venta</option>
-    <option value="noticias">Noticia</option>
-  </select>
-  <input id="precio" placeholder="Precio">
-  <input type="file" id="img" accept="image/*">
-  <textarea id="texto" placeholder="Descripción"></textarea>
-  <button onclick="guardar()">Publicar</button>
-</div>
+<input id="texto" placeholder="Texto del aviso">
 
-</div>
+<input id="imagen" placeholder="URL de imagen (opcional)">
+
+<input id="precio" placeholder="Precio (opcional)">
+
+<button onclick="guardar()">Publicar</button>
+
+<p id="estado"></p>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-
-const CLAVE = "admin123";
-
-function login(){
-  if(document.getElementById("pass").value === CLAVE){
-    login.style.display="none";
-    panel.style.display="block";
-  } else alert("Clave incorrecta");
-}
-window.login = login;
+import { getFirestore, collection, addDoc, serverTimestamp }
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID"
+  apiKey: "AIzaSyCpZGsRlW_Vr9vJrlv4nCmJi7VDscld8Yw",
+  authDomain: "tramites-a993f.firebaseapp.com",
+  projectId: "tramites-a993f",
+  storageBucket: "tramites-a993f.firebasestorage.app",
+  messagingSenderId: "363617051453",
+  appId: "1:363617051453:web:a5c46549c4057b06f51b54"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.guardar = async ()=>{
-  const texto = texto.value;
-  if(!texto) return alert("Escribe algo");
+window.guardar = async function(){
+  const estado = document.getElementById("estado");
+  estado.innerText = "Publicando...";
 
-  let imagen = "";
-  if(img.files[0]){
-    const r = new FileReader();
-    r.onload = async ()=>{
-      imagen = r.result;
-      await subir(imagen);
-    };
-    r.readAsDataURL(img.files[0]);
-  } else subir("");
+  await addDoc(collection(db,"posts"),{
+    tipo: tipo.value,
+    texto: texto.value,
+    imagen: imagen.value,
+    precio: precio.value,
+    fecha: serverTimestamp()
+  });
 
-  async function subir(im){
-    await addDoc(collection(db,"posts"),{
-      tipo: tipo.value,
-      texto,
-      precio: precio.value,
-      imagen: im,
-      fecha: serverTimestamp()
-    });
-    alert("Publicado");
-    texto.value="";precio.value="";img.value="";
-  }
+  estado.innerText = "✅ Publicado correctamente";
+  texto.value = imagen.value = precio.value = "";
 };
 </script>
 
